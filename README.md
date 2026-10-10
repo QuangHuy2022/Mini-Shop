@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mini Shop
 
-## Getting Started
+Mini Shop là cửa hàng demo được xây dựng bằng Next.js App Router, React và JavaScript. Giao diện được chuyển từ phiên bản HTML/CSS/JavaScript; hình ảnh cửa hàng được đặt trong `public/MiniShop_Assets`.
 
-First, run the development server:
+## Chạy cục bộ
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở http://localhost:3000.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Kiểm tra production build:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run build
+npm run start
+```
 
-## Learn More
+## Các trang
 
-To learn more about Next.js, take a look at the following resources:
+- `/`: Trang chủ.
+- `/products` và `/products/[id]`: Danh sách, lọc, tìm kiếm, sắp xếp và chi tiết sản phẩm.
+- `/cart`, `/favorites`, `/checkout`: Giỏ hàng, sản phẩm yêu thích và đặt hàng demo.
+- `/login`, `/register`: Tài khoản demo lưu trên trình duyệt.
+- `/admin`, `/admin/products`, `/admin/orders`: Tổng quan và quản lý demo; các trang admin yêu cầu phiên quản trị.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Tài khoản quản trị dùng thử: `admin@minishop.vn` / `admin123`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Đây là bản demo phía trình duyệt, chưa kết nối backend hoặc cổng thanh toán. Thay đổi danh mục sản phẩm ở trang admin chỉ tồn tại trong phiên trang hiện tại.
