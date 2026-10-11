@@ -1,17 +1,19 @@
-"use client";
-
-import { useEffect } from "react";
 import { Suspense } from "react";
-import { useRouter } from "next/navigation";
-import { useStore } from "./store-provider";
+import { redirect } from "next/navigation";
+import { isAdminClaims } from "../lib/auth-user.mjs";
+import { createClient } from "../lib/supabase/server";
 import { AdminLayout } from "./common";
 
-export default function AdminGuard({ children }) {
-  const { session, ready } = useStore();
-  const router = useRouter();
-  useEffect(() => {
-    if (ready && (!session || session.role !== "admin")) router.replace("/login?next=admin");
-  }, [ready, session, router]);
-  if (!ready || !session || session.role !== "admin") return null;
+export default async function AdminGuard({ children }) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+
+  if (error) {
+    console.error("Không thể xác minh quyền truy cập khu quản trị:", error.message);
+    redirect("/login?next=admin");
+  }
+
+  if (!isAdminClaims(data?.claims)) redirect("/login?next=admin");
+
   return <div className="admin-body"><Suspense fallback={<main className="admin-content" />}><AdminLayout>{children}</AdminLayout></Suspense></div>;
 }

@@ -40,6 +40,7 @@ export function AdminLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const { session, signOut } = useStore();
+  const [authError, setAuthError] = useState("");
   const nav = [
     { href: "/admin", label: "Tổng quan", icon: "⌂" },
     { href: "/admin/products", label: "Sản phẩm", icon: "◇" },
@@ -48,6 +49,14 @@ export function AdminLayout({ children }) {
   return <div className="admin-app"><aside className="admin-sidebar">
     <Link className="admin-brand" href="/admin"><span className="admin-brand-icon">M</span><span><strong>Mini Shop</strong><small>Admin Panel</small></span></Link>
     <p className="admin-nav-label">MENU</p><nav className="admin-nav" aria-label="Điều hướng quản trị">{nav.map((item) => <Link key={item.href} className={`admin-nav-link ${pathname === item.href ? "active" : ""}`} href={item.href} aria-current={pathname === item.href ? "page" : undefined}><span className="admin-nav-icon">{item.icon}</span><span>{item.label}</span></Link>)}</nav><Link className="admin-sidebar-store" href="/products">← Quay lại cửa hàng</Link>
-    <button className="admin-sidebar-logout" type="button" onClick={() => { signOut(); router.push("/login"); }}>↪ Đăng xuất</button>
-  </aside><div className="admin-workspace"><header className="admin-topbar"><span className="admin-topbar-title">{nav.find((item) => item.href === pathname)?.label || "Quản trị"}</span><div className="admin-topbar-right"><span className="admin-live-label"><span /> Chế độ demo</span><span className="admin-avatar">{session?.name?.slice(0, 1).toUpperCase()}</span><span className="admin-topbar-name">{session?.name}</span></div></header><main className="admin-content">{children}</main></div></div>;
+    <button className="admin-sidebar-logout" type="button" onClick={async () => {
+      setAuthError("");
+      try {
+        await signOut();
+        router.push("/login");
+      } catch (error) {
+        setAuthError(error.message);
+      }
+    }}>↪ Đăng xuất</button>{authError && <p className="auth-error" role="alert">{authError}</p>}
+    </aside><div className="admin-workspace"><header className="admin-topbar"><span className="admin-topbar-title">{nav.find((item) => item.href === pathname)?.label || "Quản trị"}</span><div className="admin-topbar-right"><span className="admin-live-label"><span /> Dữ liệu Supabase</span><span className="admin-avatar">{session?.name?.slice(0, 1).toUpperCase()}</span><span className="admin-topbar-name">{session?.name}</span></div></header><main className="admin-content">{children}</main></div></div>;
 }

@@ -1268,30 +1268,12 @@ select {
   min-height: 1.5em;
   margin-bottom: 10px;
   color: #dc2626;
+}
+
+.auth-success {
+  margin-bottom: 10px;
+  color: #15803d;
   font-size: 0.86rem;
-}
-
-.demo-account {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-top: 22px;
-  padding: 14px;
-  border: 1px solid var(--primary-border);
-  border-radius: var(--radius-sm);
-  background: var(--primary-light);
-  color: var(--text-main);
-  font-size: 0.84rem;
-}
-
-.demo-account strong {
-  margin-bottom: 3px;
-  color: var(--primary-hover);
-}
-
-.demo-account code {
-  color: var(--dark);
-  font-weight: 700;
 }
 
 .auth-switch {
@@ -1304,13 +1286,6 @@ select {
 .auth-switch a {
   color: var(--blue);
   font-weight: 700;
-}
-
-.auth-demo-note {
-  margin-top: 14px;
-  color: var(--text-light);
-  text-align: center;
-  font-size: 0.75rem;
 }
 
 .header-account-name {
@@ -2980,6 +2955,38 @@ select {
 
 .admin-form-actions .btn-primary-green {
   color: #ffffff;
+}
+
+.admin-product-message {
+  margin: 0 0 12px;
+  font-size: 0.86rem;
+}
+
+.admin-product-message.error {
+  color: #dc2626;
+}
+
+.admin-product-message.success,
+.admin-upload-status {
+  color: #16803c;
+}
+
+.admin-upload-label {
+  display: block;
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.admin-upload-status {
+  margin-top: 8px;
+  font-size: 0.82rem;
+}
+
+.admin-form-actions button:disabled,
+.admin-row-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .admin-management-orders-table {

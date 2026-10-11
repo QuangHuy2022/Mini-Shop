@@ -12,6 +12,7 @@ export function SiteHeader() {
   const { cartCount, wishlist, session, signOut } = useStore();
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [authError, setAuthError] = useState("");
   const onSubmit = (event) => {
     event.preventDefault();
     router.push(`/products${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ""}`);
@@ -42,12 +43,20 @@ export function SiteHeader() {
             {session ? <>
               <span className="header-account-name">{session.name}</span>
               {session.role === "admin" && <Link className="btn btn-pill btn-outline-green" href="/admin">Quản trị</Link>}
-              <button className="btn btn-pill btn-outline-blue" onClick={() => { signOut(); router.push("/"); }} type="button">Đăng xuất</button>
+              <button className="btn btn-pill btn-outline-blue" onClick={async () => {
+                setAuthError("");
+                try {
+                  await signOut();
+                  router.push("/");
+                } catch (error) {
+                  setAuthError(error.message);
+                }
+              }} type="button">Đăng xuất</button>
             </> : <>
               <Link className="btn btn-pill btn-outline-blue" href="/login">Đăng nhập</Link>
               <Link className="btn btn-pill btn-primary-blue" href="/register">Đăng ký</Link>
-              <Link className="btn btn-pill btn-outline-green" href="/admin">Admin</Link>
             </>}
+            {authError && <span className="auth-error" role="alert">{authError}</span>}
           </div>
         </div>
       </div>

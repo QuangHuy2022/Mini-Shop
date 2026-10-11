@@ -5,21 +5,25 @@ import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { Breadcrumbs, ProductCard } from "../../../../components/common";
 import { useStore } from "../../../../components/store-provider";
-import { CATEGORIES, FALLBACK_IMAGE, formatPrice, PRODUCTS } from "../../../../lib/products";
+import { useCatalog } from "../../../../lib/catalog";
+import { FALLBACK_IMAGE, formatPrice } from "../../../../lib/products";
 
 function ProductDetailContent() {
   const { id } = useParams();
-  const product = PRODUCTS.find((item) => String(item.id) === String(id));
+  const { products, categories, loading, error } = useCatalog();
+  const product = products.find((item) => String(item.id) === String(id));
   const { addToCart, wishlist, toggleWishlist } = useStore();
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
   const saved = product ? wishlist.includes(product.id) : false;
   const related = useMemo(() => product
-    ? PRODUCTS.filter((item) => item.id !== product.id && item.category === product.category)
-      .concat(PRODUCTS.filter((item) => item.id !== product.id && item.category !== product.category)).slice(0, 4)
-    : [], [product]);
+    ? products.filter((item) => item.id !== product.id && item.category === product.category)
+      .concat(products.filter((item) => item.id !== product.id && item.category !== product.category)).slice(0, 4)
+    : [], [product, products]);
+  if (loading) return <main className="container product-detail-section"><p className="page-subtitle">Đang tải sản phẩm...</p></main>;
+  if (error) return <main className="container product-detail-section"><p className="page-subtitle" role="alert">Không thể tải sản phẩm: {error}</p></main>;
   if (!product) return <main className="container product-detail-section"><div className="products-empty"><h1 className="page-title">Không tìm thấy sản phẩm</h1><p className="page-subtitle">Sản phẩm bạn muốn xem không tồn tại hoặc đã được gỡ khỏi cửa hàng.</p><Link className="btn btn-primary-blue" href="/products">Quay lại danh sách sản phẩm</Link></div></main>;
-  const category = CATEGORIES.find((item) => item.id === product.category);
+  const category = categories.find((item) => item.id === product.category);
   return <main className="container product-detail-section">
     <Breadcrumbs items={[{ label: "Trang chủ", href: "/" }, { label: "Sản phẩm", href: "/products" }, { label: product.name }]} />
     <section className="detail-main-grid" aria-labelledby="detail-title"><div className="detail-gallery-wrap"><div className="thumb-list" aria-label="Ảnh sản phẩm"><button className="thumb-item active" type="button" aria-label={`Xem ảnh ${product.name}`}><img src={product.image} alt="" /></button></div><div className="main-img-box"><img src={product.image} alt={product.name} fetchPriority="high" onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }} /></div></div>

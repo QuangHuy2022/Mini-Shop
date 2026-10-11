@@ -1,14 +1,13 @@
 "use client";
 
-import { createContext, useContext, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useSyncExternalStore } from "react";
+import { createClient } from "../lib/supabase/client";
+import { toStoreUser } from "../lib/auth-user.mjs";
 
 const StoreContext = createContext(null);
 const CART_KEY = "mini-shop-cart";
 const WISHLIST_KEY = "mini-shop-wishlist";
-const SESSION_KEY = "mini-shop-session";
-const USERS_KEY = "mini-shop-users";
-const DEMO_ADMIN = { name: "Quản trị viên", email: "admin@minishop.vn", password: "admin123", role: "admin" };
-const EMPTY_STATE = { cart: [], wishlist: [], session: null, ready: false };
+const EMPTY_STATE = { cart: [], wishlist: [], session: null, ready: false, authReady: false };
 let state = EMPTY_STATE;
 let hydrated = false;
 const listeners = new Set();
@@ -24,7 +23,6 @@ function subscribe(listener) {
     state = {
       cart: readStorage(CART_KEY, []),
       wishlist: readStorage(WISHLIST_KEY, []),
-      session: readStorage(SESSION_KEY, null),
       ready: true,
     };
     hydrated = true;
@@ -54,7 +52,6 @@ if (typeof window !== "undefined") {
   window.addEventListener("storage", (event) => {
     if (event.key === CART_KEY) state = { ...state, cart: readStorage(CART_KEY, []) };
     if (event.key === WISHLIST_KEY) state = { ...state, wishlist: readStorage(WISHLIST_KEY, []) };
-    if (event.key === SESSION_KEY) state = { ...state, session: readStorage(SESSION_KEY, null) };
     listeners.forEach((listener) => listener());
   });
 }
@@ -67,6 +64,18 @@ export function useStore() {
 
 export default function StoreProvider({ children }) {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  useEffect(() => {
+    localStorage.removeItem("mini-shop-users");
+    localStorage.removeItem("mini-shop-session");
+
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, authSession) => {
+      update({ session: toStoreUser(authSession?.user), authReady: true });
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   function addToCart(productId, quantity = 1) {
     const found = snapshot.cart.find((item) => item.productId === productId);
@@ -95,33 +104,41 @@ export default function StoreProvider({ children }) {
     update({ wishlist }, { [WISHLIST_KEY]: wishlist });
   }
 
-  function signIn(email, password) {
-    const normalized = email.trim().toLowerCase();
-    const users = readStorage(USERS_KEY, []);
-    const user = normalized === DEMO_ADMIN.email
-      ? DEMO_ADMIN
-      : users.find((account) => account.email === normalized);
-    if (!user || user.password !== password) throw new Error("Email hoặc mật khẩu không chính xác.");
-    const session = { name: user.name, email: user.email, role: user.role };
-    update({ session }, { [SESSION_KEY]: session });
-    return session;
+  async function signIn(email, password) {
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    if (error) throw error;
+
+    const user = toStoreUser(data.user);
+    update({ session: user, authReady: true });
+    return user;
   }
 
-  function register({ name, email, password }) {
-    const normalized = email.trim().toLowerCase();
-    const users = readStorage(USERS_KEY, []);
-    if (normalized === DEMO_ADMIN.email || users.some((user) => user.email === normalized)) {
-      throw new Error("Email này đã được đăng ký.");
+  async function register({ name, email, password }) {
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: { full_name: name.trim() },
+      },
+    });
+    if (error) throw error;
+
+    if (data.session) {
+      update({ session: toStoreUser(data.user), authReady: true });
     }
-    const user = { name: name.trim(), email: normalized, password, role: "customer" };
-    localStorage.setItem(USERS_KEY, JSON.stringify([...users, user]));
-    const session = { name: user.name, email: user.email, role: user.role };
-    update({ session }, { [SESSION_KEY]: session });
-    return session;
+
+    return data;
   }
 
-  function signOut() {
-    update({ session: null }, { [SESSION_KEY]: null });
+  async function signOut() {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   }
 
   const value = {
@@ -129,6 +146,7 @@ export default function StoreProvider({ children }) {
     wishlist: snapshot.wishlist,
     session: snapshot.session,
     ready: snapshot.ready,
+    authReady: snapshot.authReady,
     cartCount: snapshot.cart.reduce((sum, item) => sum + item.quantity, 0),
     addToCart,
     setQuantity,
